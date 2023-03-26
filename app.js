@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/db-contacts
     if (connection) {
       console.log('Database connection successful');
     } else {
-      mongoose.connection.on('error', console.error.bind(console, 'Error conection'));
+      console.log('Error conection');
     }
   });
 

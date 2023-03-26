@@ -1,4 +1,3 @@
-// const fs = require('fs').promises;
 const {
   Types: { ObjectId },
 } = require('mongoose');
@@ -9,25 +8,31 @@ const Contacts = require('../models/contactsModel');
  * Check new contact data.
  */
 const checkContactData = async (req, res, next) => {
-  const { err, value } = validators.modules.createContactValidator(req.body);
+  try {
+    const { err, value } = validators.modules.createContactValidator(req.body);
 
-  if (err) {
-    const error = new Error('Invalid user data.');
+    if (err) {
+      const error = new Error('Invalid user data.');
 
-    error.status = 400;
-    return next(error);
+      error.status = 400;
+      return next(error);
+    }
+    const { name } = value;
+
+    const contactExist = await Contacts.exists({ name });
+
+    if (contactExist) {
+      const error = new Error('Contact with this name is already exists');
+      error.status = 409;
+      return next(error);
+    }
+
+    req.body = value;
+
+    next();
+  } catch (err) {
+    next(err);
   }
-  const { name } = value;
-
-  const contactExist = await Contacts.exists({ name });
-
-  if (contactExist) {
-    return next(new Error(409, 'Contact with this name is already exist'));
-  }
-
-  req.body = value;
-
-  next();
 };
 /*
  * Check contact id.
@@ -37,13 +42,17 @@ const checkContactId = async (req, res, next) => {
     const { id } = req.params;
 
     if (!ObjectId.isValid(id)) {
-      return next(new Error(400, 'Invalid ID parameter.'));
+      const error = new Error('Invalid ID parameter.');
+      error.status = 400;
+      return next(error);
     }
 
     const contactExists = await Contacts.exists({ _id: id });
 
     if (!contactExists) {
-      return next(new Error(404, 'Not Found'));
+      const error = new Error('Not Found');
+      error.status = 404;
+      return next(error);
     }
     next();
   } catch (err) {
@@ -61,12 +70,16 @@ const checkFavoriteContact = async (req, res, next) => {
       favorite,
     } = req.body;
     if (!name || !email || !phone || !favorite) {
-      return next(new Error(400, 'missing field favorite'));
+      const error = new Error('Missing field favorite');
+      error.status = 400;
+      return next(error);
     }
     const contactUpdate = await Contacts.exists({ id, favorite });
 
     if (!contactUpdate) {
-      return next(new Error(404, 'Not found'));
+      const error = new Error('Not found');
+      error.status = 404;
+      return next(error);
     }
     next();
   } catch (err) {

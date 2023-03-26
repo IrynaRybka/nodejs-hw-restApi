@@ -122,7 +122,9 @@ const favoriteContacts = async (req, res) => {
 
     res.status(200).json({ contactUpdate });
   } catch (err) {
-    res.status(404).json({ message: 'Not found' });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
