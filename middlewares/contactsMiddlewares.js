@@ -1,9 +1,14 @@
-const fs = require('fs').promises;
+// const fs = require('fs').promises;
+const {
+  Types: { ObjectId },
+} = require('mongoose');
+
 const { validators } = require('../utils');
+const Contacts = require('../models/contactsModel');
 /*
  * Check new contact data.
  */
-const checkContactData = (req, res, next) => {
+const checkContactData = async (req, res, next) => {
   const { err, value } = validators.modules.createContactValidator(req.body);
 
   if (err) {
@@ -11,6 +16,13 @@ const checkContactData = (req, res, next) => {
 
     error.status = 400;
     return next(error);
+  }
+  const { name } = value;
+
+  const contactExist = await Contacts.exists({ name });
+
+  if (contactExist) {
+    return next(new Error(409, 'Contact with this name is already exist'));
   }
 
   req.body = value;
@@ -22,21 +34,41 @@ const checkContactData = (req, res, next) => {
  */
 const checkContactId = async (req, res, next) => {
   try {
-    const { err, id } = validators.modules.updateContactValidateByID(req.params);
-    if (err) {
-      const error = new Error('Invalid ID parameter. ');
+    const { id } = req.params;
 
-      error.status = 404;
-      return next(error);
+    if (!ObjectId.isValid(id)) {
+      return next(new Error(400, 'Invalid ID parameter.'));
     }
-    const contacts = JSON.parse(await fs.readFile('../models/contacts.json'));
 
-    const contact = contacts.find((item) => item.id === id);
-    if (contact) return next();
+    const contactExists = await Contacts.exists({ _id: id });
 
-    const error = new Error('Not Found');
-    error.status = 404;
-    next(error);
+    if (!contactExists) {
+      return next(new Error(404, 'Not Found'));
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+const checkFavoriteContact = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      email,
+      phone,
+      favorite,
+    } = req.body;
+    if (!name || !email || !phone || !favorite) {
+      return next(new Error(400, 'missing field favorite'));
+    }
+    const contactUpdate = await Contacts.exists({ id, favorite });
+
+    if (!contactUpdate) {
+      return next(new Error(404, 'Not found'));
+    }
+    next();
   } catch (err) {
     next(err);
   }
@@ -45,4 +77,5 @@ const checkContactId = async (req, res, next) => {
 module.exports = {
   checkContactData,
   checkContactId,
+  checkFavoriteContact,
 };
