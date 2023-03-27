@@ -1,18 +1,31 @@
 const express = require('express');
 const logger = require('morgan');
+const dotenv = require('dotenv');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const contactsRouter = require('./routes/api/contactsRoutes');
 
 const app = express();
 
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
+const formatsLogger = dotenv.config({ path: './.env' });
+// const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-// REST API
+// MONGO DB
+mongoose.connect(process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/db-contacts')
+  .then((connection) => {
+    if (connection) {
+      console.log('Database connection successful');
+    } else {
+      console.log('Error conection');
+    }
+  });
+
+// routes
 app.use('/api/contacts', contactsRouter);
 // app.use('/api/contacts/:id', contactsRouter);
 /**

@@ -1,12 +1,15 @@
-const fs = require('fs').promises;
-const { v4: uuidv4 } = require('uuid');
+// const fs = require('fs').promises;
+// const { v4: uuidv4 } = require('uuid');
+
+const Contacts = require('../models/contactsModel');
 
 /**
  * Get contacts list
  */
 const listContacts = async (req, res) => {
   try {
-    const contacts = JSON.parse(await fs.readFile('./models/contacts.json', 'utf8'));
+    const contacts = await Contacts.find();
+
     res.status(200).json({
       contacts,
     });
@@ -22,10 +25,7 @@ const listContacts = async (req, res) => {
 const getContactById = async (req, res) => {
   try {
     const { id } = req.params;
-    const dataFromDB = await fs.readFile('./models/contacts.json', 'utf8');
-    // const textJson = dataFromDB.toString();
-    const contacts = JSON.parse(dataFromDB);
-    const contact = contacts.find((item) => item.id === id);
+    const contact = await Contacts.findById(id);
 
     res.status(200).json({
       contact,
@@ -42,11 +42,8 @@ const getContactById = async (req, res) => {
 const removeContact = async (req, res) => {
   try {
     const { id } = req.params;
-    const dataFromDB = await fs.readFile('./models/contacts.json', 'utf8');
-    const contacts = JSON.parse(dataFromDB);
-    const updateContactsList = contacts.filter((item) => item.id !== id);
 
-    await fs.writeFile('./models/contacts.json', JSON.stringify(updateContactsList));
+    await Contacts.findByIdAndDelete(id);
 
     res.sendStatus(204);
   } catch (err) {
@@ -60,18 +57,19 @@ const removeContact = async (req, res) => {
  */
 const addContact = async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
-    const dataFromDB = await fs.readFile('./models/contacts.json', 'utf8');
-    const contacts = JSON.parse(dataFromDB);
-    const newContact = {
-      id: uuidv4(),
+    const {
       name,
       email,
       phone,
-    };
-    contacts.push(newContact);
+      favorite,
+    } = req.body;
+    const newContact = await Contacts.create({
+      name,
+      email,
+      phone,
+      favorite,
+    });
 
-    await fs.writeFile('./models/contacts.json', JSON.stringify(contacts));
     res.status(201).json({
       contact: newContact,
     });
@@ -87,23 +85,42 @@ const addContact = async (req, res) => {
 const updateContact = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, phone } = req.body;
-    const contacts = JSON.parse(await fs.readFile('./models/contacts.json', 'utf8'));
-    const contact = contacts.find((item) => item.id === id);
+    const {
+      name,
+      email,
+      phone,
+      favorite,
+    } = req.body;
 
-    if (name) contact.name = name;
-    if (email) contact.email = email;
-    if (phone) contact.phone = phone;
-
-    const contactIndex = contacts.findIndex((item) => item.id === id);
-
-    contacts[contactIndex] = contact;
-
-    await fs.writeFile('./models/contacts.json', JSON.stringify(contacts));
+    const contact = await Contacts.findByIdAndUpdate(id, {
+      name,
+      email,
+      phone,
+      favorite
+    }, { new: true });
 
     res.status(200).json({
       contact,
     });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+/**
+ * Choise favorite contacts
+ */
+const favoriteContacts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { favorite } = req.body;
+
+    const contactUpdate = await Contacts.findByIdAndUpdate(id, favorite, {
+      new: true,
+    });
+
+    res.status(200).json({ contactUpdate });
   } catch (err) {
     res.status(500).json({
       message: err.message,
@@ -117,4 +134,5 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
+  favoriteContacts,
 };
