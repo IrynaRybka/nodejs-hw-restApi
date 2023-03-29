@@ -1,14 +1,11 @@
-// const fs = require('fs').promises;
-// const { v4: uuidv4 } = require('uuid');
-
-const Contacts = require('../models/contactsModel');
+const Contact = require('../models/contactsModel');
 
 /**
  * Get contacts list
  */
 const listContacts = async (req, res) => {
   try {
-    const contacts = await Contacts.find();
+    const contacts = await Contact.find();
 
     res.status(200).json({
       contacts,
@@ -25,7 +22,7 @@ const listContacts = async (req, res) => {
 const getContactById = async (req, res) => {
   try {
     const { id } = req.params;
-    const contact = await Contacts.findById(id);
+    const contact = await Contact.findById(id);
 
     res.status(200).json({
       contact,
@@ -43,7 +40,7 @@ const removeContact = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Contacts.findByIdAndDelete(id);
+    await Contact.findByIdAndDelete(id);
 
     res.sendStatus(204);
   } catch (err) {
@@ -62,12 +59,14 @@ const addContact = async (req, res) => {
       email,
       phone,
       favorite,
+      owner,
     } = req.body;
-    const newContact = await Contacts.create({
+    const newContact = await Contact.create({
       name,
       email,
       phone,
       favorite,
+      owner,
     });
 
     res.status(201).json({
@@ -89,14 +88,16 @@ const updateContact = async (req, res) => {
       name,
       email,
       phone,
-      favorite,
+      favorite = false,
+      owner,
     } = req.body;
 
-    const contact = await Contacts.findByIdAndUpdate(id, {
+    const contact = await Contact.findByIdAndUpdate(id, {
       name,
       email,
       phone,
-      favorite
+      favorite,
+      owner,
     }, { new: true });
 
     res.status(200).json({
@@ -116,7 +117,7 @@ const favoriteContacts = async (req, res) => {
     const { id } = req.params;
     const { favorite } = req.body;
 
-    const contactUpdate = await Contacts.findByIdAndUpdate(id, favorite, {
+    const contactUpdate = await Contact.findByIdAndUpdate(id, favorite, {
       new: true,
     });
 

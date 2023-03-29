@@ -3,7 +3,7 @@ const {
 } = require('mongoose');
 
 const { validators } = require('../utils');
-const Contacts = require('../models/contactsModel');
+const Contact = require('../models/contactsModel');
 /*
  * Check new contact data.
  */
@@ -19,7 +19,7 @@ const checkContactData = async (req, res, next) => {
     }
     const { name } = value;
 
-    const contactExist = await Contacts.exists({ name });
+    const contactExist = await Contact.exists({ name });
 
     if (contactExist) {
       const error = new Error('Contact with this name is already exists');
@@ -47,7 +47,7 @@ const checkContactId = async (req, res, next) => {
       return next(error);
     }
 
-    const contactExists = await Contacts.exists({ _id: id });
+    const contactExists = await Contact.exists({ _id: id });
 
     if (!contactExists) {
       const error = new Error('Not Found');
@@ -59,22 +59,20 @@ const checkContactId = async (req, res, next) => {
     next(err);
   }
 };
-
+/*
+ * Check contact - favorite.
+ */
 const checkFavoriteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      email,
-      phone,
-      favorite,
-    } = req.body;
-    if (!name || !email || !phone || !favorite) {
+    const { favorite } = req.body;
+
+    if (favorite === undefined) {
       const error = new Error('Missing field favorite');
       error.status = 400;
       return next(error);
     }
-    const contactUpdate = await Contacts.exists({ id, favorite });
+    const contactUpdate = await Contact.exists({ id, favorite });
 
     if (!contactUpdate) {
       const error = new Error('Not found');
