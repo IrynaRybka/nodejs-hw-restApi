@@ -4,12 +4,16 @@ const Contact = require('../models/contactsModel');
  * Get contacts list
  */
 const listContacts = async (req, res) => {
+  const { page = 1, limit = 20, favorite = false } = req.query;
+  const skip = (page - 1) * limit;
+  const filters = favorite ? { favorite } : {};
   try {
-    const contacts = await Contact.find();
+    // eslint-disable-next-line radix
+    const contacts = await Contact.find({ ...filters }).skip(skip).limit(parseInt(limit));
 
-    res.status(200).json({
-      contacts,
-    });
+    const total = await Contact.countDocuments({ ...filters });
+
+    res.status(200).json({ contacts, total });
   } catch (err) {
     res.status(500).json({
       message: err.message,
@@ -54,20 +58,14 @@ const removeContact = async (req, res) => {
  */
 const addContact = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      phone,
-      favorite,
-      owner,
-    } = req.body;
-    const newContact = await Contact.create({
-      name,
-      email,
-      phone,
-      favorite,
-      owner,
-    });
+    const contactData = {
+      name: req.body,
+      email: req.body,
+      phone: req.body,
+      favorite: req.body,
+      owner: req.user,
+    };
+    const newContact = await Contact.create(contactData);
 
     res.status(201).json({
       contact: newContact,

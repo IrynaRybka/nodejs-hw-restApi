@@ -66,8 +66,42 @@ const loginUser = async (req, res) => {
     });
   }
 };
+// LogOut user
+const logOutUser = async (req, res) => {
+  try {
+    const { _id: id } = req.user;
+    const user = await User.findById(id);
+    if (!user) {
+      const error = new Error('Not authorized');
+      return res.status(401).json({ error });
+    }
+
+    await User.findByIdAndUpdate(id, { token: '' });
+    res.status(204).json();
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+// Take current data user
+const currentDataUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+    res.json({ email: user.email, subscription: user.subscription });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
 
 module.exports = {
   userRegister,
   loginUser,
+  logOutUser,
+  currentDataUser,
 };
