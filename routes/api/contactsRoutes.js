@@ -2,8 +2,12 @@ const express = require('express');
 
 const contactController = require('../../controllers/contactsController');
 const contactMiddlewares = require('../../middlewares/contactsMiddlewares');
+const authMiddlewares = require('../../middlewares/authMiddlewares');
 
 const router = express.Router();
+
+// Allow next routes only for logged in users
+router.use(authMiddlewares.checkLoginUser);
 
 router
   .route('/')

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const { model, Schema, Types: { ObjectId } } = require('mongoose');
 
-const contactSchema = new mongoose.Schema({
+const contactSchema = new Schema({
   name: {
     type: String,
     require: [true, 'Set name for contact'],
@@ -18,9 +18,13 @@ const contactSchema = new mongoose.Schema({
   favorite: {
     type: Boolean,
     default: false,
-  }
+  },
+  owner: {
+    type: ObjectId,
+    ref: 'user',
+  },
 });
 
-const Contact = mongoose.model('Contact', contactSchema);
+const Contact = model('Contact', contactSchema);
 
 module.exports = Contact;

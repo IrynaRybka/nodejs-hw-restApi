@@ -5,11 +5,11 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const contactsRouter = require('./routes/api/contactsRoutes');
+const authRouter = require('./routes/api/authRoutes');
 
 const app = express();
 
 const formatsLogger = dotenv.config({ path: './.env' });
-// const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
 app.use(logger(formatsLogger));
 app.use(cors());
@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/db-contacts
 
 // routes
 app.use('/api/contacts', contactsRouter);
-// app.use('/api/contacts/:id', contactsRouter);
+app.use('/api/auth/users', authRouter);
 /**
  * Handle "not found" requests
  */
@@ -39,7 +39,7 @@ app.all('*', (req, res) => {
  * Global error handler (middleware with 4 params)
  */
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: err.message });
+  res.status(500).json({ message: err.message, stack: err.stack, });
   next();
 });
 
