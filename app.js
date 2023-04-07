@@ -14,6 +14,8 @@ const formatsLogger = dotenv.config({ path: './.env' });
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
+// serve static files
+app.use(express.static('public'));
 
 // MONGO DB
 mongoose.connect(process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/db-contacts')

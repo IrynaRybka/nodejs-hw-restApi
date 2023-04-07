@@ -21,7 +21,7 @@ const contactSchema = new Schema({
   },
   owner: {
     type: ObjectId,
-    ref: 'user',
+    ref: 'User',
   },
 });
 

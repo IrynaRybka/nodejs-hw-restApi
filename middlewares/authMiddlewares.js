@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const User = require('../models/usersModel');
 const { validators } = require('../utils');
+const ImageService = require('../services/imageService');
 
 const checkRegisterData = async (req, res, next) => {
   try {
@@ -48,6 +49,12 @@ const checkLoginUser = async (req, res, next) => {
     // Find user by id decoded from token
     const currentUser = await User.findById(decodedToken.id);
 
+    if (!currentUser) {
+      const error = new Error('You are not logged in');
+      error.status = 401;
+      return next(error);
+    }
+
     req.user = currentUser;
 
     next();
@@ -64,8 +71,12 @@ const allowFor = (...subscription) => (req, res, next) => {
   return next(error);
 };
 
+// add avatar when user registrating
+const uploadUserPhoto = ImageService.upload('avatarURL');
+
 module.exports = {
   checkRegisterData,
   checkLoginUser,
   allowFor,
+  uploadUserPhoto,
 };

@@ -10,18 +10,26 @@ const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, {
 // Register user
 const userRegister = async (req, res) => {
   try {
-    const newUserData = { ...req.body };
+    const {
+      password, email, subscription, avatarURL
+    } = req.body;
+
+    const newUserData = {
+      password,
+      email,
+      subscription,
+      avatarURL
+    };
+
     const newUser = await User.create(newUserData);
 
     newUser.password = undefined;
+
     const token = signToken(newUser.id);
 
     res.status(201).json({
-      user: {
-        email: newUser.email,
-        subscription: newUser.subscription,
-      },
-      token
+      user: newUser,
+      token,
     });
   } catch (err) {
     res.status(500).json({
@@ -84,24 +92,9 @@ const logOutUser = async (req, res) => {
     });
   }
 };
-// Take current data user
-const currentDataUser = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(401).json({ message: 'Not authorized' });
-    }
-    res.json({ email: user.email, subscription: user.subscription });
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
-};
 
 module.exports = {
   userRegister,
   loginUser,
   logOutUser,
-  currentDataUser,
 };
