@@ -4,10 +4,15 @@ const contactController = require('../../controllers/contactsController');
 const contactMiddlewares = require('../../middlewares/contactsMiddlewares');
 const authMiddlewares = require('../../middlewares/authMiddlewares');
 
+const { USER_SUBSCRIPTION_ENUM } = require('../../enums');
+
 const router = express.Router();
 
 // Allow next routes only for logged in users
 router.use(authMiddlewares.checkLoginUser);
+
+// Allow next routes only for users with specified subscription 'business', 'starter', 'pro'
+router.use(authMiddlewares.allowFor(USER_SUBSCRIPTION_ENUM.BUSINESS, USER_SUBSCRIPTION_ENUM.STARTER, USER_SUBSCRIPTION_ENUM.PRO));
 
 router
   .route('/')

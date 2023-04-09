@@ -4,16 +4,32 @@ const Contact = require('../models/contactsModel');
  * Get contacts list
  */
 const listContacts = async (req, res) => {
-  const { page = 1, limit = 20, favorite = false } = req.query;
-  const skip = (page - 1) * limit;
-  const filters = favorite ? { favorite } : {};
   try {
-    // eslint-disable-next-line radix
-    const contacts = await Contact.find({ ...filters }).skip(skip).limit(parseInt(limit));
+    const {
+      sort, order, page, limit, search,
+    } = req.query;
 
-    const total = await Contact.countDocuments({ ...filters });
+    const findOptions = search
+      ? { $or: [{ title: { $regex: search, $options: 'i' } }, { desc: { $regex: search, $options: 'i' } }] }
+      : {};
+    const contactsQuery = Contact.find(findOptions);
 
-    res.status(200).json({ contacts, total });
+    // const todos = await Todo.find().sort(`${order === 'DESC' ? '-' : ''}${sort}`);
+    contactsQuery.sort(`${order === 'DESC' ? '-' : ''}${sort}`);
+
+    const paginationPage = +page || 1;
+    const paginationLimit = +limit || 20;
+    const skip = (paginationPage - 1) * paginationLimit;
+
+    contactsQuery.skip(skip).limit(paginationLimit);
+
+    const contactCount = await Contact.count(findOptions);
+    const contacts = await contactsQuery.populate('owner');
+
+    res.status(200).json({
+      total: contactCount,
+      contacts,
+    });
   } catch (err) {
     res.status(500).json({
       message: err.message,

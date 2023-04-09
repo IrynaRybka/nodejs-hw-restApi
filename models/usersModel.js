@@ -1,6 +1,7 @@
 const { model, Schema } = require('mongoose');
 
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const userSchema = new Schema({
   password: {
@@ -21,11 +22,23 @@ const userSchema = new Schema({
   token: {
     type: String,
     default: null,
+  },
+  avatarURL: {
+    type: String,
+    default: 'public/avatars/garfield.png'
   }
 });
 // Mongoose pre-save hook. Passwords auto-hashing
 // eslint-disable-next-line func-names
 userSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    // generate hash email to random avatar
+    const emailHash = crypto.createHash('md5').update(this.email).digest('hex');
+
+    this.avatarURL = `https://www.gravatar.com/avatar/${emailHash}.jpg?d=monsterid`;
+  }
+  if (!this.isModified('password')) return next();
+
   const salt = await bcrypt.genSalt(10);
 
   this.password = await bcrypt.hash(this.password, salt);
