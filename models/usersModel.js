@@ -26,7 +26,15 @@ const userSchema = new Schema({
   avatarURL: {
     type: String,
     default: 'public/avatars/garfield.png'
-  }
+  },
+  verify: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+    required: [true, 'Verify token is required'],
+  },
 });
 // Mongoose pre-save hook. Passwords auto-hashing
 // eslint-disable-next-line func-names

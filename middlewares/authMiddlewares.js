@@ -71,6 +71,18 @@ const allowFor = (...subscription) => (req, res, next) => {
   return next(error);
 };
 
+// validate body
+const validateDataSchema = (req, res, next) => {
+  const validationResult = validators.modules.verifyEmailSchema(req.body);
+
+  if (validationResult.error) {
+    const error = new Error(validationResult.error.message);
+    error.status = 400;
+    return next(error);
+  }
+  next();
+};
+
 // add avatar when user registrating
 const uploadUserPhoto = ImageService.upload('avatarURL');
 
@@ -79,4 +91,5 @@ module.exports = {
   checkLoginUser,
   allowFor,
   uploadUserPhoto,
+  validateDataSchema,
 };

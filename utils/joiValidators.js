@@ -40,8 +40,14 @@ const loginValidator = (data) => Joi.object()
   })
   .validate(data);
 
+// validate email
+const verifyEmailSchema = Joi.object({
+  email: Joi.string().required(),
+});
+
 exports.modules = {
   createContactValidator,
   registerUserValidator,
   loginValidator,
+  verifyEmailSchema,
 };
